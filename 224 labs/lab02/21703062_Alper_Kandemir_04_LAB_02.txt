@@ -1,0 +1,239 @@
+	
+.text
+
+start:	
+	addi	$sp, $sp, -20
+	sw	$s4, 16($sp)
+	sw	$s3, 12($sp)
+	sw	$s2, 8($sp)
+	sw	$s1, 4($sp)
+	sw	$s0, 0($sp)
+	
+	li	$v0, 4
+	la	$a0, msg1
+	syscall
+	
+	
+	# Get user input
+	li $v0, 5
+    	syscall
+	
+	move $s3,$v0		# s3 = size
+	mul $a0, $s3, 4 	# allocate space
+
+	li $v0,9		# dynamic allocation
+	syscall
+	
+	move 	$s0, $v0	# s0 has address of the array
+	move 	$s4, $v0	# s4 has address of the array
+	jal monitor
+	lw	$s0, 12($sp)
+	lw	$s1, 8($sp)
+	lw	$s2, 4($sp)
+	lw	$s3, 0($sp)
+	addi	$sp, $sp, 16
+	
+monitor:
+
+adding:	
+	# s0 array address
+	# s2 counter
+	# s3 array size
+	
+	li	$v0, 4
+	la	$a0, msg2
+	syscall
+	
+	# Get user input
+	li $v0, 5
+    	syscall
+	
+	
+	#store the first element to the array
+	sw $v0, 0($s0)
+	
+	#increment the index
+	addi $s0,$s0, 4
+	
+	#increment the counter
+	addi $s2,$s2, 1
+	bgt $s3,$s2, adding
+	
+	move $a0, $s4
+	move $a1, $s3
+	move $a2, $s4
+	move $a3, $s3
+	jal bubbleSort
+	
+	la $a0,msg4	
+	li $v0,4
+	syscall
+	move 	$a0, $v1
+	li	$v0, 1
+	syscall
+	
+	jal medianMax
+	
+	move 	$s0, $v0
+	
+	la $a0,msg3	
+	li $v0,4
+	syscall
+	
+	move 	$a0, $s0
+	li	$v0, 1
+	syscall
+	
+	
+	j exit
+	
+bubbleSort:
+	# a0 array address
+	# a1 array size
+	move 	$s3, $a1
+	move 	$s0, $a0			#s0 = array address
+	move 	$s5, $a0
+	#addi $a1,$a1, 1
+	#div $a1,$a1,2 
+	#mul $s3,$a1,$s3
+	li 	$s6,0
+	j 	loop
+	reset:
+		move 	$s3, $a1
+		addi 	$s6,$s6, 1
+		sub 	$s3,$s3, $s6
+		move 	$s0, $a0
+		move 	$s5, $a0
+		beq 	$s3,1,finish
+	loop:
+	
+		beq 	$s3,1,reset
+		lw 	$s1,0($s0)		#s1 = first item
+		addi 	$s0,$s0, 4
+		
+		lw 	$s2,0($s0)		#s2 = second item
+		addi 	$s3,$s3, -1
+		bgt 	$s1,$s2,swap
+		addi 	$s5,$s5, 4
+		bne 	$s3, 1, loop
+		beq 	$s3,1,reset
+		beq 	$s3,1,finish
+		
+	swap:
+	
+		move 	$s4, $s1
+		move	$s1, $s2
+		sw 	$s1, 0($s5)
+		addi 	$s5, $s5, 4
+		move 	$s2, $s4
+		sw 	$s2, 0($s5)
+		beq 	$s3, 1, reset
+		bne 	$s3, 1, loop
+		
+		
+	finish:
+		li 	$s1,0
+		move	$s0, $a0
+		move	$s3, $a1
+		
+	p:	
+		lw 	$a0, 0($s0)
+		li	$v0, 1
+		syscall
+		lw 	$v1, 0($s0)
+		
+		addi 	$s1,$s1, 1
+		addi 	$s0,$s0, 4
+	
+		bne 	$s1, $s3, com		
+		lw	$s0, 16($sp)
+		lw	$s1, 12($sp)
+		lw	$s2, 8($sp)
+		lw	$s3, 4($sp)
+		lw	$s4, 0($sp)
+		addi	$sp, $sp, 20
+		jr	$ra
+	
+	com:
+		la	$a0, commamsg	# print comma
+		li 	$v0, 4
+		syscall
+		j p
+	
+medianMax:
+	# a0 array address
+	# a1 array size
+	
+	move 	$s0,$a2	# s0 = address
+	move 	$s1,$a3	# s1 = size	
+	
+	div 	$a3,$a3,2
+	mfhi 	$a3
+	beq 	$a3,0,even
+	beq 	$a3,1,odd	
+				
+						
+		odd:				 	
+			addi 	$s1, $s1, 1
+			div 	$s1, $s1, 2 	# s2 = (n+1)/2
+			
+			move	$s3, $s1	# s3 counter=(n+1)/2
+			j loop2
+			
+		continue:
+			lw 	$v0, 0($s0)	#store median
+			jr $ra
+			
+		loop2:
+			addi 	$s0, $s0, 4
+			addi 	$s3, $s3, -1
+			bne 	$s3,1,loop2
+			j continue
+		
+		#------------------------------------------------------------
+		
+		even:	
+			#s0 = address   s1 = size		 
+			div 	$s4, $s1, 2	# s4 = n/2
+			div 	$s5, $s1, 2	# s5 = n/2
+			#add 	$s5,$s5,1	# s5 = n/2 +1
+			move 	$s3,$s5
+			j loop3
+			
+		continue2:
+		
+			lw 	$s5, 0($s0)    	# s5 = n/2
+			addi 	$s0, $s0, 4
+			lw 	$s6, 0($s0)	# s6 = n/2 +1
+			add	$s5, $s5, $s6
+			div	$s5,$s5,2
+			mfhi 	$s7
+			beq 	$s7,1, oddresult
+			move 	$v0, $s5
+			jr $ra
+			oddresult:
+			addi	$s5, $s5, 1
+			move 	$v0, $s5
+			jr $ra
+	
+		loop3:
+			addi 	$s0, $s0, 4
+			addi 	$s3, $s3, -1
+			bne 	$s3,1,loop3
+			j continue2
+				
+		
+								
+exit:
+	li $v0, 10
+	syscall	
+	
+.data
+
+msg1:		.asciiz	"enter size\n"
+msg2:		.asciiz	"enter a number\n"
+commamsg:	.asciiz	","
+msg3:		.asciiz	"\nmed value is:"
+msg4:		.asciiz	"\nmax value is:"
+
+

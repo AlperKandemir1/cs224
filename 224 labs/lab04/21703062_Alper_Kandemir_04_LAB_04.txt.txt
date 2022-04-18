@@ -1,0 +1,192 @@
+alper kandemir
+21703062	
+cs224 sec04
+lab04
+
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 25.11.2021 18:58:17
+// Design Name: 
+// Module Name: top_module
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module top_module(input   logic 	 clk, reset,            
+	              output  logic[31:0] pc,instr,writedata, dataadr,       
+	              output  logic       memwrite);
+	     
+	     logic [31:0] readdata;    
+
+   // instantiate processor and memories  
+   mips mips (clk, reset, pc, instr, memwrite, dataadr, writedata, readdata);  
+   imem imem (pc[7:2], instr);  
+   dmem dmem (clk, memwrite, dataadr, writedata, readdata);
+	     
+	     
+	     
+endmodule
+
+
+
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 25.11.2021 20:45:55
+// Design Name: 
+// Module Name: top_test
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+`timescale 1ns / 1ps
+module top_test( );
+    logic clk, reset;
+    logic[31:0] pc,instr,writedata, dataadr;
+    logic memwrite;
+    
+    top_module top_module_test(clk,reset,pc,instr,writedata,dataadr,memwrite);
+    
+    initial
+        begin
+          clk=0;
+          reset = 1;
+          #10;
+          reset = 0;  
+          //reset 10ns 
+        end
+    always begin
+          clk= 0; #10;
+          clk= 1; #10;
+        end
+endmodule
+
+
+
+
+
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 25.11.2021 18:03:53
+// Design Name: 
+// Module Name: alu_test
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+`timescale 1ns / 1ps
+module alu_test( );
+
+        logic[31:0] a, b; 
+        logic[2:0] alucont;
+        wire[31:0] result;
+        wire zero;
+        
+        Alu alutest(a,b,alucont,result,zero);
+        
+        initial
+        begin
+            a=32'h11111111 ; b=32'h00000000 ; alucont = 3'b000; 
+            #100 // a and b
+            a=32'h11111111 ; b=32'h00000000 ;alucont = 3'b001; 
+            #100 // a or b
+            a=32'h0000001d ; b=32'h00000004;alucont = 3'b010; 
+            #100 // a + b
+            a=32'h0000001d ; b=32'h00000004; alucont = 3'b110; 
+            #100 // a - b
+            a=32'h0000001d ; b=32'h00000004; alucont = 3'b111; 
+            #100; // (a < b) 
+           
+        end
+        
+endmodule
+
+
+
+
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 25.11.2021 17:59:15
+// Design Name: 
+// Module Name: Alu
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module Alu(input  logic [31:0] a, b,  
+           input  logic [2:0]  alucont,  
+           output logic [31:0] result, 
+           output logic zero
+    );
+    always_comb 
+
+	case ( alucont) 
+
+		3'b000: result = a&b; 
+
+		3'b001: result = a|b; 
+
+		3'b010: result = a+b; 
+
+		3'b110: result = a-b; 
+
+		3'b111: result = (a<b)?1:0;
+
+		default: result = a+b; 
+
+    endcase 
+
+  assign zero = 0; 
+
+endmodule
+
+

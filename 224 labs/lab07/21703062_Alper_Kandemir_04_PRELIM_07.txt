@@ -1,0 +1,104 @@
+CS224 / 07
+Sec No 04
+Alper Kandemir - 21703062
+Bora Fenari Köstem - 21801823
+
+Part1-a:
+      Tri-state: We use TRISA for output and TRISE for input in part a.
+      
+      Portx: PORTA's 0, 1 and 2 bits are used to control dc motor. PORTE's 0 and 1 bits are used to take inputs from push buttons that change the rotation direction of the dc motor.
+
+Part1-b:
+// cs224 
+// sec04
+// lab07 part2-b
+// Alper Kandemir - Bora Fenari Köstem
+// 21703062         21801823
+// dc motor's direction control with push buttons
+// push button 0 = clockwise
+// push button 1 = counter clockwise
+
+void main() {
+
+ AD1PCFG = 0xFFFF;
+
+ DDPCON.JTAGEN = 0; // disable JTAG
+
+ TRISA = 0x0000;  //portA is output
+
+ TRISE = 0XFFFF;  //portE is inputs
+
+ PORTAbits.RA0 = 1; //IRQ actived
+
+ while(1)
+ {
+  PORTAbits.RA2 = PORTEbits.RE0;    //  assign push button zero to ctrl2
+  PORTAbits.RA1 = PORTEbits.RE1;    //  assign push button one to ctrl1
+ }//while
+ 
+}
+
+
+
+
+
+
+
+Part1-c: 
+      Tri-state: We use TRISA for output to D and TRISE for output to AN.
+      
+      Portx: PORTA equals certain digits of the binary pattern array like 1234 then 2345... PORTE equals seven segment display screen index (1-2-4-8).
+
+
+
+Part1-d:
+// cs224 
+// sec04
+// lab07 part2-c
+// Alper Kandemir - Bora Fenari Köstem
+// 21703062         21801823
+// seven segments display in certain order
+
+// Hexadecimal values for digits in 7 segment
+unsigned char binary_pattern[]={0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};
+// variable for for loops
+int i;
+int delay;
+
+void main() {
+
+ AD1PCFG = 0xFFFF;      // Configure AN pins as digital I/O
+ JTAGEN_bit = 0;        // Disable JTAG
+
+ TRISA = 0x00;          //portA is output to D
+ TRISE = 0X00;          //portE is output to AN
+
+ while(1)
+ {
+  for(i=0;i<9;i++)  {                                   // Array index counter to display digits
+         for(delay=0; delay < 400;delay++){             // Delay counter to display 4 digits together
+                    // Digit 1
+                    PORTA=binary_pattern[(i%9)];        // Put i%9 to the 1st digit
+                    PORTE=0x01;                         // Open 1st digit
+                    Delay_ms(1);                        // Wait 1 milisecond and switch to next digit
+
+                    // Digit 2
+                    PORTA=binary_pattern[(i+1)%9];      // Put (i+1)%9 to the 2nd digit
+                    PORTE=0x02;                         // Open 2nd digit
+                    Delay_ms(1);                        // Wait 1 milisecond and switch to next digit
+
+                    // Digit 3
+                    PORTA=binary_pattern[(i+2)%9];      // Put (i+2)%9 to the 3rd digit
+                    PORTE=0x04;                         // Open 3rd digit
+                    Delay_ms(1);                        // Wait 1 milisecond and switch to next digit
+
+                    // Digit 4
+                    PORTA=binary_pattern[(i+3)%9];      // Put (i+3)%9 to the 4th digit
+                    PORTE=0x08;                         // Open 4th digit
+                    Delay_ms(1);                        // Wait 1 milisecond and switch to next digit
+          }
+     }
+ }
+
+}//main
+

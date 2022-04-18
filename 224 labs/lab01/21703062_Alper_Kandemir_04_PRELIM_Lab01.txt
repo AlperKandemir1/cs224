@@ -1,0 +1,297 @@
+	.text
+	
+	la	$t0, array1
+	lw	$t2, counter
+	
+	
+	
+	# Display string: 
+	# $v0= 4, $a0= address of string, sycall
+	li	$v0, 4
+	la	$a0, msg1
+	syscall
+	
+	# Get user input
+	li $v0, 5
+    	syscall
+	
+	# Save to a register
+	move $t3, $v0
+	
+	bne $t3,$0,continue
+	j true
+continue:
+	
+adding:	
+	# Display string: 
+	# $v0= 4, $a0= address of string, sycall
+	li	$v0, 4
+	la	$a0, msg2
+	syscall
+	
+	# Get user input
+	li $v0, 5
+    	syscall
+	
+	# Save to a register
+	move $t4, $v0
+	
+	#store the first element to the array1
+	sw $t4, 0($t0)
+	
+	#increment the index
+	addi $t0,$t0, 4
+	
+	#increment the counter
+	addi $t2,$t2, 1
+	
+	bgt $t3,$t2, adding
+	
+	
+reverse:	
+	#fix the last index
+    	addi    $t0, $t0, -4
+    	
+	#last index element
+	lw      $t5, 0($t0)
+	
+    	#printing int
+	li	$v0, 1
+	move    $a0, $t5
+	syscall
+	
+	#printing space
+	li	$v0, 4
+	la	$a0, msg3
+	syscall
+	
+	#decrement the counter
+	addi $t2,$t2, -1
+
+	bgt $t2,$0, reverse
+	j exit
+true:	
+	li	$v0, 4
+	la	$a0, msg4
+	syscall
+exit:
+	li $v0, 10
+	syscall
+	
+	.data
+array1:	.space 	80
+counter:.word	0
+msg1:	.asciiz	"enter size\n"
+msg2:	.asciiz	"enter a number\n"
+msg3: 	.asciiz	" "
+msg4: 	.asciiz	"empty arr "
+
+
+
+
+---------------------------------------------------------------------------
+			
+				
+	.text		
+		
+	la	$t0, array
+	la	$t1, array
+	lw	$t2, counter		
+				
+	#getting size			
+	li	$v0, 4
+	la	$a0, msg1
+	syscall
+							
+	# Get user input
+	li $v0, 5
+    	syscall
+	
+	# Save to a register
+	move 	$t3, $v0
+				
+	bne	$t3,$0, adding
+	li	$v0, 4
+	la	$a0, msg5
+	syscall	
+	j exit	
+			
+adding:			
+	# Display string: 
+	# $v0= 4, $a0= address of string, sycall
+	li	$v0, 4
+	la	$a0, msg2
+	syscall
+	
+	# Get user input
+	li $v0, 5
+    	syscall
+	
+	# Save to a register
+	move $t4, $v0
+	
+	#store the first element to the array1
+	sw $t4, 0($t0)
+	
+	#increment the index
+	addi $t0,$t0, 4
+	
+	#increment the counter
+	addi $t2,$t2, 1
+	
+	bgt $t3,$t2, adding		
+			
+			
+	#fix the last index
+    	addi    $t0, $t0, -4    #t0=last element
+    	#reset counter
+    	
+check:
+	lw 	$t5, 0($t0)
+	lw 	$t6, 0($t1)
+	
+    	addi    $t0, $t0, -4
+    	addi    $t1, $t1, 4
+    	
+    	#decrement the counter
+	addi 	$t2,$t2, -1
+	
+	bne 	$t5,$t6,false
+    	bgt 	$t2,$0, check
+    	
+    	#palindrome
+    	li	$v0, 4
+	la	$a0, msg5
+	syscall
+	j exit
+    	
+    	#not palindrome
+false:
+	li	$v0, 4
+	la	$a0, msg4
+	syscall
+			
+exit:
+	li $v0, 10
+	syscall			
+			
+			
+			
+			
+	.data		
+array:	.space 	80
+counter:.word	0
+msg1:	.asciiz	"enter size\n"
+msg2:	.asciiz	"enter a number\n"
+msg3: 	.asciiz	" "	
+msg4: 	.asciiz	"not palindrome\n"
+msg5: 	.asciiz	"palindrome\n"	
+
+
+
+
+
+---------------------------------------------------------------------------
+
+.text	
+
+	lw	$t0, A	
+	lw	$t1, B	
+	lw	$t2, C		
+	
+	#getting a text			
+	li	$v0, 4
+	la	$a0, msg1
+	syscall
+							
+	# getting a
+	li $v0, 5
+    	syscall
+	
+	# Save to a register
+	move 	$t0, $v0
+
+
+	#getting b text			
+	li	$v0, 4
+	la	$a0, msg2
+	syscall
+							
+	# getting b
+	li $v0, 5
+    	syscall
+	
+	# Save to a register
+	move 	$t1, $v0
+
+
+	#getting c text			
+	li	$v0, 4
+	la	$a0, msg4
+	syscall
+							
+	# getting c
+	li $v0, 5
+    	syscall
+	
+	# Save to a register
+	move 	$t2, $v0
+
+
+
+
+	# x = a (b - c) % 8
+
+	
+	sub $t4,$t1,$t2
+	mult $t4,$t0 
+	mflo $t5
+	mfhi $t6
+	
+	bne $t4,$0,continue
+	j true
+	
+continue:	
+	bne $t0,$0,continue2
+	j true
+continue2:
+
+#checking if b-c is negative or not
+	blt $t4,0,loop2
+	
+loop:
+	addi $t5,$t5,-8
+	bge $t5,8,loop
+	
+	li	$v0, 1
+	move	$a0, $t5
+	syscall
+	j exit
+	
+loop2:
+	addi $t5,$t5,8
+	blt $t5,0,loop2
+	
+	li	$v0, 1
+	move	$a0, $t5
+	syscall
+	j exit
+true:	
+	li	$v0, 1
+	move	$a0, $0
+	syscall
+
+
+exit:
+	li $v0, 10
+	syscall	
+.data		
+
+A:.word	0
+B:.word	0
+C:.word	0
+msg1:	.asciiz	"enter a\n"
+msg2:	.asciiz	"enter b\n"
+msg3: 	.asciiz	" "	
+msg4: 	.asciiz	"enter c\n"
+msg5: 	.asciiz	"\n"	

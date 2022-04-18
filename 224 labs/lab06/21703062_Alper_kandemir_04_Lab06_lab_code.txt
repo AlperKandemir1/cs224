@@ -1,0 +1,281 @@
+.text
+	
+	
+	li	$v0, 4
+	la	$a0, msg1
+	syscall
+	
+	li 	$v0, 5
+    	syscall
+    	
+	move 	$s0, $v0   	# s0=size
+	mul 	$s1,$s0,$s0	# s1=number of elements
+	
+	
+	#initialize matrix:
+	mul  	$s2,$s1,4 	# s2=number of bytes allocation
+	move 	$a0,$s2
+	
+	li	$v0, 9
+	syscall
+	move 	$s3, $v0	# s3=address 
+	move 	$s4, $v0
+	
+	
+	
+	#initialize matrix elements:
+	li	$s7, 1		#s7=first value
+	
+	loop:
+		
+		sw 	$s7,0($s4)	#store the value
+		addi 	$s7,$s7,1	#values
+		addi 	$s4,$s4,4	#address increment
+		bgt 	$s7,$s1,done
+		j loop
+	
+	done:
+		li	$s7, 0	#reset the reg
+	
+	
+	
+menu:	
+	
+	li	$v0, 4
+	la	$a0, msg3
+	syscall
+
+	li	$v0, 4
+	la	$a0, msg5
+	syscall
+	
+	li	$v0, 4
+	la	$a0, msg6
+	syscall
+
+    	li	$v0, 4
+	la	$a0, msg7
+	syscall
+	
+	li	$v0, 4
+	la	$a0, msg8
+	
+	syscall
+	li 	$v0, 5
+    	syscall
+    	
+	move 	$t0, $v0   	#option
+	
+	
+	
+	beq 	$t0,3,menu3
+	beq 	$t0,5,menu5	
+	beq 	$t0,6,menu6
+	beq 	$t0,7,exit	
+	bne	$t0,7,menu
+exit:
+	li 	$v0,10
+	syscall
+
+	
+
+
+
+#display matrix
+menu3:
+	
+	
+	#ask row
+	li	$v0, 4
+	la	$a0, row
+	
+	syscall
+	li 	$v0, 5
+    	syscall
+    	move	$s7, $v0
+    	
+    	
+	#ask col
+	li	$v0, 4
+	la	$a0, col
+	
+	syscall
+	li 	$v0, 5
+    	syscall
+    	move	$a1, $v0
+    	move	$a0, $s7
+
+    	
+	jal display
+
+	j menu
+#add row by row
+menu5:
+	jal row_row
+
+	j menu
+#add col by col
+menu6:
+	jal col_col
+
+
+	j menu
+
+
+display:
+#a0=row
+#a1=col
+#s0=size
+#s1=number of elements
+#s3=address of the arr
+#formula=(a0-1) * N * 4 + (a1-1) * 4
+	addi	$sp, $sp, -24
+	sw	$s0, 20($sp)
+	sw	$s1, 16($sp)
+	sw	$s2, 12($sp)
+	sw	$s3, 8($sp)
+	sw	$s4, 4($sp)
+	sw	$ra, 0($sp)	
+
+	sub 	$s7, $a0, 1	#s7=(a0-1)
+	mul 	$s7, $s7, $s0	#s7=(a0-1) * N
+	mul 	$s7, $s7, 4	#s7=(a0-1) * N * 4
+	
+	sub 	$s6, $a1, 1	#s6=(a1-1)
+	mul 	$s6, $s6, 4	#s6=(a1-1) * 4
+	
+	add 	$s7,$s7,$s6	#(a0-1) * N * 4 + (a1-1) * 4
+	add 	$s7,$s7,$s3	#s7=address of the element
+	
+	
+	
+	li	$v0, 1
+	lw 	$a0, 0($s7)
+	syscall
+	
+	lw	$ra, 0($sp)
+	lw	$s4, 4($sp)
+	lw	$s3, 8($sp)
+	lw	$s2, 12($sp)
+	lw	$s1, 16($sp)
+	lw	$s0, 20($sp)
+	addi	$sp, $sp, 24
+	jr	$ra
+	
+row_row:
+#s0=size
+#s1=number of elements
+#s3=address of the arr
+#s4=sum
+#s5=values
+
+	addi	$sp, $sp, -24
+	sw	$s0, 20($sp)
+	sw	$s1, 16($sp)
+	sw	$s2, 12($sp)
+	sw	$s3, 8($sp)
+	sw	$s4, 4($sp)
+	sw	$ra, 0($sp) 
+	li	$s4,0
+	
+	loop2:
+		lw	$s5,0($s3)
+		addi 	$s3, $s3, 4
+		add 	$s4,$s4,$s5
+		addi 	$s1, $s1, -1
+		beq 	$s1, 0, done2
+		j loop2
+		
+	done2:
+		li	$v0, 4
+		la	$a0, res
+		syscall
+		li	$v0, 1
+		move	$a0, $s4
+		syscall
+	
+	
+	lw	$ra, 0($sp)
+	lw	$s4, 4($sp)
+	lw	$s3, 8($sp)
+	lw	$s2, 12($sp)
+	lw	$s1, 16($sp)
+	lw	$s0, 20($sp)
+	addi	$sp, $sp, 24
+	jr	$ra
+
+
+col_col:
+#s0=size
+#s1=number of elements
+#s3=address of the arr
+#s4=sum
+#s5=values
+#$s7=head ptr
+#$s6=cur ptr
+	addi	$sp, $sp, -24
+	sw	$s0, 20($sp)
+	sw	$s1, 16($sp)
+	sw	$s2, 12($sp)
+	sw	$s3, 8($sp)
+	sw	$s4, 4($sp)
+	sw	$ra, 0($sp) 
+	
+	li	$s4,0
+	move 	$s2,$s0
+	move 	$s7,$s3	
+	move 	$s6,$s3		
+	mul	$a0,$s0,4
+	loop3:
+		lw 	$s5,0($s6)			
+		add 	$s4,$s4,$s5	
+		add	$s6,$s6,$a0
+		
+		addi 	$s2, $s2, -1
+		addi 	$s1, $s1, -1
+		beq 	$s2, 0, flag
+		j loop3
+		
+	flag:	#head=headnext then,cur=head so,starting with next col
+		add 	$s7,$s7,4
+		move 	$s6,$s7
+		move	$s2,$s0
+		
+		beq 	$s1, 0, done3
+		j loop3
+	
+	done3:			
+		li	$v0, 4
+		la	$a0, res
+		syscall
+		li	$v0, 1
+		move	$a0, $s4
+		syscall
+				
+	lw	$ra, 0($sp)
+	lw	$s4, 4($sp)
+	lw	$s3, 8($sp)
+	lw	$s2, 12($sp)
+	lw	$s1, 16($sp)
+	lw	$s0, 20($sp)
+	addi	$sp, $sp, 24
+	jr	$ra			
+					
+						
+							
+								
+									
+											
+	
+	.data
+
+msg1:.asciiz "\nEnter a size:"
+
+msg3:.asciiz "\n\n3.Display desired elements of the matrix by specifying its row and column member:"
+msg5:.asciiz "\n5.Obtain summation of matrix elements row-major (row by row) summation:"
+msg6:.asciiz "\n6.Obtain summation of matrix elements column-major (column by column) summation:"
+msg7:.asciiz "\n7.Exit"
+msg8:.asciiz "\nchose an option:"
+row:.asciiz "\nrow:"
+col:.asciiz "col:"
+res:.asciiz "\nres:"
